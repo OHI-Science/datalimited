@@ -12,7 +12,13 @@
 #' @export
 summarize_bbmsy <- function(bbmsy, probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
   log = FALSE, ...) {
-  q <- apply(bbmsy, 2, quantile, probs = probs, ...)
+  
+  #adding in a rolling mean every 5 years. since we take the rolling mean of mean_bbmsy, we also need the rolling
+  # mean for the 2.5 and 97.5 quantiles to more accurately calculate low and high score estimates. this was not part of
+  # the original code from the datalimited summarize_bbmsy function.
+  roll <- apply(bbmsy,1,function(x) rollmean(x,5,align="right", fill=NA))
+  
+  q <- apply(roll, 1, quantile, probs = probs,na.rm=T), ...)
   q <- as.data.frame(t(q))
   names(q) <- paste0("bbmsy_q", names(q))
   names(q) <- gsub("%", "", names(q))
